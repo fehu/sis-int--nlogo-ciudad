@@ -1,7 +1,8 @@
 
 globals [ street-north-east-color   street-south-west-color   street-cross-color
           delta-street-distance-v   delta-street-distance-h
-          last-road-name-v          last-road-name-h          road-names
+          last-road-name-v          last-road-name-h
+          roads-info
   ]
 
 breed [ road-builder road-builders ]
@@ -18,6 +19,7 @@ patches-own [
   ; for roads
   road-direction
   road-name
+  road-short-name
   ; for crosses
   open-direction
   road-name-v
@@ -61,6 +63,7 @@ to setup-build
   set last-road-name-v 0
   set last-road-name-h 0
 
+  set roads-info []
 end
 
 
@@ -96,6 +99,54 @@ end
 to build-streets-grid'
   ask road-builder [ build-streets-grid ]
 end
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; transforms some of the existing roads to two-lanes
+to build-avenues
+  let selected select-avenues
+  let av-h first selected
+  let av-v last  selected
+  
+  
+  
+end
+
+to build-avenue [ inf ]
+  set xcor    get-road-x inf
+  set ycor    get-road-y inf
+  set heading get-road-dir inf
+  
+  move task [ is-perimeter? patch-ahead 1 ] 
+       task [ ]
+  fd 1
+  rt 90
+  fd 1
+  rt 90
+  
+  let name sentence get-road-name inf "'"
+  let short sentence get-road-short-name inf "'"
+    
+  mem-road-here short name 0
+  move-building-road name short
+  
+end
+
+to-report select-avenues
+  let av-h sort-by-prev-dist (filter [h-dir? get-road-dir ?1] roads-info)
+  let av-v sort-by-prev-dist (filter [v-dir? get-road-dir ?1] roads-info)
+                   
+  let av-h-m sublist av-h 0 (length av-h / 3)
+  let av-v-m sublist av-v 0 (length av-v / 3)
+  
+  report list av-h-m av-v-m
+                   
+end
+
+to-report sort-by-prev-dist [ infs ]
+  report sort-by [get-road-prev-dist ?1 > get-road-prev-dist ?2] infs
+end
+
+
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; builds a grid of one-lane streets
@@ -135,46 +186,43 @@ to-report next-street
       ]
      
      [;ELSE
-       print "JUMP"
        jump to-jump 
   
        let name next-street-name heading
+       let short substring name 2 (length name)
   
        next-street-turn
        build-cross-here name
-       mem-road name
+       mem-road-here short name to-jump
        
-       ask patch-ahead -1 [ set plabel name ]
-       print "LABEL"
+       if show-road-begin? [ ask patch-ahead -1 [ set plabel name ] ]
        
-       move task [ is-perimeter? patch-ahead 1 ]
-            task [ 
-                   ifelse is-road? patch-here 
-                         [ build-cross-here "" ] 
-                         [ build-road-here ]
-              ]
-       
-       print "END TASK"
+       move-building-road name short
        
        fd 1
-       build-cross-here ""
-       next-street-turn       
-       
-       print "NEXT TURN"
+       build-cross-here name
+       next-street-turn
        
        report true
       ]
   
+end
 
-  
+to move-building-road [ name short-name ]
+  move task [ is-perimeter? patch-ahead 1 ]
+       task [ 
+              ifelse is-road? patch-here 
+                    [ build-cross-here name ] 
+                    [ build-road-here name short-name ]
+         ]
 end
 
 to-report next-street-name [ dir ]
   if v-dir? dir [ set last-road-name-v last-road-name-v + 1 
-                  report word "v-" last-road-name-v
+                  report word "h-" last-road-name-v
                 ]
   if h-dir? dir [ set last-road-name-h last-road-name-h + 1 
-                  report word "h-" last-road-name-h
+                  report word "v-" last-road-name-h
                 ]
 end
 
@@ -236,12 +284,18 @@ to build-perimeter
   set heading East ; random-choice (list North East)
   
   move task [ is-road? patch-ahead 1 ]
-       task [ build-road-here
+       task [ 
+              let dir' dir2str heading-right
+              let name word "Perimeter-" dir'
+              let short first dir'
+              
+              build-road-here name short
+              
               if is-edge? patch-ahead perimeter-margin
-                 [ let name word "Perimeter-" (dir2str heading-right)
+                 [ lt 90
                    build-cross-here name
-                   mem-road name
-                   lt 90 
+                   mem-road-here name short 0
+;                   lt 90 
                    ]
             ]
 end
@@ -259,21 +313,26 @@ end
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; build different roads
 
-to build-road-here
+to build-road-here [ name short-name ]
   set is-road   true
   set is-cross  false
   set pcolor    street-color-to-paint heading
-  set road-name [road-name] of patch-ahead -1
+  
+  let p patch-ahead -1
+;  let name ifelse-value is-cross? p
+;   [road-name] of 
+   
+  set road-name name
+  set road-short-name short-name
+  
+  if fill-street-name? [ set plabel short-name ]
 end
 
-to build-cross-here [ name ] ; case new street
+to build-cross-here [ current-street ] ; case new street
   set is-road  true
   set is-cross true
   set pcolor   street-cross-color
   
-  let current-street ifelse-value not empty? name
-                           [ [road-name] of patch-ahead -1 ]
-                           [ name ]
   let perpend-street [road-name] of patch-right-and-ahead 90 1
   
   set road-name-v ifelse-value v-dir? heading
@@ -294,10 +353,6 @@ to-report street-color-to-paint [ dir ]
   report []
 end
 
-to mem-road [ name ]
-  set road-names sentence road-names name
-end
-
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; repeating tasks
 
@@ -307,6 +362,60 @@ to move [ until do ]
 
   if not (runresult until)
      [ move until do ]
+end
+
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; working with roads-info
+
+to mem-road-here [ name short-name prev-dist ]
+  let s-cor list pxcor pycor
+  mem-road heading name short-name s-cor prev-dist
+end
+
+to mem-road [ dir name short-name start-cor prev-dist ]
+  
+  let info (list name dir start-cor prev-dist short-name)
+  
+  set roads-info fput info roads-info
+end
+
+to assert-info-length [ inf ]
+  assert (length inf = 5) "not an info"
+  assert (length item 2 inf = 2) "not a coordinate"
+end
+
+to-report get-road-name [ inf ]
+  assert-info-length inf
+  report first inf
+end
+
+to-report get-road-dir [ inf ]
+  assert-info-length inf
+  report item 1 inf
+end
+
+to-report get-road-cor [ inf ]
+  assert-info-length inf
+  report item 2 inf
+end
+
+to-report get-road-prev-dist [ inf ]
+  assert-info-length inf
+  report item 3 inf
+end
+
+to-report get-road-short-name [ inf ]
+  assert-info-length inf
+  report item 4 inf
+end
+
+to-report get-road-x [ inf ] 
+  report item 0 get-road-cor inf
+end
+
+to-report get-road-y [ inf ] 
+  report item 1 get-road-cor inf
 end
 
 
@@ -463,10 +572,10 @@ ticks
 30.0
 
 BUTTON
-1645
-160
-1718
-193
+1649
+232
+1722
+265
 NIL
 setup
 NIL
@@ -480,10 +589,10 @@ NIL
 1
 
 BUTTON
-1722
-161
-1850
-194
+1726
+233
+1854
+266
 NIL
 build-roads
 NIL
@@ -527,10 +636,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-1751
-267
-1851
-300
+1755
+339
+1855
+372
 NIL
 next-street'
 NIL
@@ -574,10 +683,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-1710
-309
-1852
-342
+1714
+381
+1856
+414
 NIL
 build-streets-grid'
 NIL
@@ -591,10 +700,10 @@ NIL
 1
 
 BUTTON
-1719
-228
-1850
-261
+1723
+300
+1854
+333
 NIL
 build-perimeter'
 NIL
@@ -621,6 +730,28 @@ perimeter-margin
 1
 NIL
 HORIZONTAL
+
+SWITCH
+1824
+157
+1982
+190
+fill-street-name?
+fill-street-name?
+1
+1
+-1000
+
+SWITCH
+1645
+157
+1816
+190
+show-road-begin?
+show-road-begin?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?

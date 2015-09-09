@@ -114,7 +114,11 @@ to next-street
        next-street-turn
        
        move task [ is-perimeter? patch-ahead 1 ]
-       task [ build-road-here ]
+            task [ 
+                   ifelse is-road? patch-here 
+                         [ build-cross-here ] 
+                         [ build-road-here ]
+              ]
        
        fd 1
        build-cross-here

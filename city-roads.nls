@@ -6,9 +6,12 @@ patches-own [
   road-direction
   road-name
   road-short-name
+  road-lane
   ; for crosses
   road-name-v
   road-name-h
+  road-lane-v
+  road-lane-h
   ]
 
 breed [ semafor semafors ]

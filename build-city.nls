@@ -115,10 +115,10 @@ to build-avenues
   
   debug sentence "selected avenues: " selected
   
-  foreach (sentence av-h av-v) [ build-avenue ?1 ]
+  foreach (sentence av-h av-v) [ build-avenue ?1 2 ]
 end
 
-to build-avenue [ inf ]
+to build-avenue [ inf lane ]
   set xcor    get-road-x inf
   set ycor    get-road-y inf
   set heading get-road-dir inf
@@ -131,12 +131,12 @@ to build-avenue [ inf ]
 ;  if cross-here? [ fd 1 ]
   lt 90
   
-  let name word get-road-name inf "'"
-  let short word get-road-short-name inf "'"
+  let name get-road-name inf
+  let short get-road-short-name inf
   
   build-cross-here name
     
-  mem-road-here-ccw name short 0
+  mem-road-here-ccw name short lane 0
   move-building-road name short
   
   fd 1
@@ -218,7 +218,7 @@ to-report next-street
   
        next-street-turn
        build-cross-here name
-       mem-road-here-ccw name short to-jump
+       mem-road-here-ccw name short 1 to-jump
        
        if show-road-begin? [ ask patch-ahead -1 [ set plabel name ] ]
        
@@ -311,18 +311,18 @@ to build-perimeter
   
   move task [ is-road? patch-ahead 1 ]
        task [ 
-              let dir' dir2str heading-left
+              let dir' dir2str heading-right
               let name word "Perimeter-" dir'
               let short first dir'
               
               build-road-here name short
               
               if is-edge? patch-ahead perimeter-margin
-                 [ lt 90;  TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                 [ ;lt 90;  TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                    let nme word "Perimeter-" dir'
                    build-cross-here nme
-                   mem-road-here-ccw name short 0
-;                   lt 90 
+                   mem-road-here-ccw name short 1 0
+                   lt 90 
                    ]
             ]
   fd 1
@@ -387,6 +387,7 @@ to build-road-here [ name short-name ]
   
   set road-name name
   set road-short-name short-name
+  set road-direction heading
   
   if fill-street-name? [ set plabel short-name ]
 end
@@ -405,7 +406,9 @@ to build-cross-here [ current-street ] ; case new street
   set is-cross true
   set pcolor   street-cross-color
   
-  let perpend-street [road-name] of patch-right-and-ahead 90 1
+  let perpend-street [road-name] of patch-left-and-ahead 90 1 ;; TODO: HARCODED
+  
+  set plabel ""
   
   set-cross-names-here current-street perpend-street
   mem-empty-cross-here
@@ -468,17 +471,17 @@ end
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; misc
 
-to-report heading-left
-  let h heading - 90
-  report ifelse-value (h = -90)
-               [ 270 ]
-               [ h ]
-end
-
-
-;to-report heading-right
-;  let h heading + 90
-;  report ifelse-value (h = 360)
-;               [ 0 ]
+;to-report heading-left
+;  let h heading - 90
+;  report ifelse-value (h = -90)
+;               [ 270 ]
 ;               [ h ]
 ;end
+
+
+to-report heading-right
+  let h heading + 90
+  report ifelse-value (h = 360)
+               [ 0 ]
+               [ h ]
+end

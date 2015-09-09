@@ -1,31 +1,38 @@
 globals [ roads-info ]
 
 ;; road-info:  -- name
+;;             -- short name
+;;             -- lane
 ;;             -- direction
 ;;             -- beginning coordinates
 ;;             -- distance to next/previous street
-;;             -- short name
 
-to mem-road-here-ccw [ name short-name prev-dist-ccw ]
+to mem-road-here-ccw [ name short-name lane prev-dist-ccw ]
   let s-cor list pxcor pycor
-  mem-road heading name short-name s-cor 0 prev-dist-ccw
+  mem-road heading name short-name lane s-cor 0 prev-dist-ccw
 end
 
-to mem-road [ dir name short-name start-cor prev-dist-cw prev-dist-ccw ]
+to mem-road [ dir name short-name lane start-cor prev-dist-cw prev-dist-ccw ]
   let prev-dist (list prev-dist-cw prev-dist-ccw)
-  let info      (list name dir start-cor prev-dist short-name)
+  let info      (list name dir start-cor prev-dist short-name lane)
   
   set roads-info lput info roads-info
 end
 
-to-report road-by-name [ name ]
+to-report roads-by-name [ name ]
   debug sentence "name: " name
-  report find task [get-road-name ?1 = name] 
-         roads-info
+  report filter [get-road-name ?1 = name] 
+                roads-info
+end
+
+to-report road-by-name [ name lane ]
+  debug sentence "name: " name
+  report find task [get-road-name ?1 = name and get-road-lane ?1 = lane] 
+              roads-info
 end
 
 to assert-info-length [ inf ]
-  assert (length inf = 5) "not an info"
+  assert (length inf = 6) "not an info"
   assert (length item 2 inf = 2) "not a coordinate"
 end
 
@@ -54,6 +61,12 @@ to-report get-road-short-name [ inf ]
   report item 4 inf
 end
 
+to-report get-road-lane [ inf ]
+  assert-info-length inf
+  report item 5 inf
+end
+
+
 to-report get-road-x [ inf ] 
   report item 0 get-road-cor inf
 end
@@ -73,7 +86,7 @@ to-report get-road-dist2prev-ccw [ inf ]
 end
 
 to set-road-dists2prev-cw [ name dist-cw ]
-  let info get-opt road-by-name name
+  let info get-opt road-by-name name 1
   let new replace-item 3 info (list dist-cw get-road-dist2prev-ccw info)
   let i position info roads-info
   set roads-info replace-item i roads-info new

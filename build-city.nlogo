@@ -215,7 +215,7 @@ SWITCH
 190
 all-street-names?
 all-street-names?
-1
+0
 1
 -1000
 

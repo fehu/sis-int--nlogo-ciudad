@@ -2,8 +2,11 @@
 globals [ street-north-east-color   street-south-west-color   street-cross-color
           delta-street-distance-v   delta-street-distance-h
           last-road-name-v          last-road-name-h
+          
           roads-info
-          -counter- -debug-
+          crosses-info
+          
+          -counter-
   ]
 
 breed [ road-builder road-builders ]
@@ -25,16 +28,10 @@ patches-own [
   open-direction
   road-name-v
   road-name-h
-;  next-cross-distance-north
-;  next-cross-distance-east
-;  next-cross-distance-south
-;  next-cross-distance-west
   ]
 
 to setup
   clear-all
-
-  set -debug- true
   
   setup-world
   
@@ -68,6 +65,7 @@ to setup-build
   set last-road-name-h 0
 
   set roads-info []
+  set crosses-info []
 end
 
 
@@ -388,10 +386,6 @@ to build-road-here [ name short-name ]
   set is-cross  false
   set pcolor    street-color-to-paint heading
   
-;  let p patch-ahead -1
-;  let name ifelse-value is-cross? p
-;   [road-name] of 
-   
   set road-name name
   set road-short-name short-name
   
@@ -542,10 +536,6 @@ to-report simple-distance-to-edge
                [ -1 ]
                  ]]]
 end
-
-;to-report forall-patches-ahead dist [ cond ]
-;  report ifelse cond
-;end
 
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
@@ -883,7 +873,7 @@ CHOOSER
 avenues-choice-mode
 avenues-choice-mode
 "1/3 of the most distant" "1/3 random from 1/2 most distant"
-0
+1
 
 BUTTON
 1660
@@ -901,6 +891,17 @@ NIL
 NIL
 NIL
 1
+
+SWITCH
+1871
+231
+1975
+264
+-debug-
+-debug-
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -153,7 +153,7 @@ max-h-street-distance
 max-h-street-distance
 1
 50
-30
+33
 1
 1
 NIL
@@ -281,7 +281,7 @@ SWITCH
 264
 debug?
 debug?
-1
+0
 1
 -1000
 

@@ -17,12 +17,12 @@ globals [ max-street-distance-v     max-street-distance-h
 
 breed [ road-builder road-builders ]
 
+
 road-builder-own [ 
   last-turns
   known-street-distances-v
   known-street-distances-h
   ]
-
 
 
 
@@ -122,12 +122,13 @@ to build-avenue [ inf ]
   set ycor    get-road-y inf
   set heading get-road-dir inf
   
-  move task [ is-perimeter? patch-ahead 1 ] 
+  move task [ not is-road? patch-ahead 1 ] 
        task [ ]
+;  fd 1
+  lt 90
   fd 1
-  rt 90
-  fd 1
-  rt 90
+;  if cross-here? [ fd 1 ]
+  lt 90
   
   let name word get-road-name inf "'"
   let short word get-road-short-name inf "'"

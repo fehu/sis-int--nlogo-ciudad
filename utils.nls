@@ -22,7 +22,7 @@ end
 ;; find first
 to-report find [ what-f where ]
   let f filter what-f where
-  ifelse length f > 0 [ report sentence first f []]
+  ifelse length f > 0 [ report (list first f)]
                       [ report [] ]
 end
 

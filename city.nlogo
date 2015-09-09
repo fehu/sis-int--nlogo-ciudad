@@ -1,5 +1,5 @@
 
-globals [ delta-width delta-height delta-street-distance-v delta-street-distance-h 
+globals [ delta-street-distance-v delta-street-distance-h                  ; delta-width delta-height
           street-north-east-color street-south-west-color street-cross-color
   ]
 
@@ -44,17 +44,17 @@ end
 
 to setup-build
   
-  set delta-width building-max-width - building-min-width
-  assert delta-width > 0 "building-max-width must be greater than building-min-width"
-  
-  set delta-height building-max-height - building-min-height
-  assert delta-height > 0 "building-max-height must be greater than building-min-height"
+;  set delta-width building-max-width - building-min-width
+;  assert delta-width >= 0 "building-max-width must be greater than building-min-width"
+;  
+;  set delta-height building-max-height - building-min-height
+;  assert delta-height >= 0 "building-max-height must be greater than building-min-height"
   
   set delta-street-distance-v max-street-distance-v - min-street-distance-v
-  assert delta-street-distance-v > 0 "max-street-distance-v must be greater than min-street-distance-v"
+  assert delta-street-distance-v >= 0 "max-street-distance-v must be greater than min-street-distance-v"
 
   set delta-street-distance-h max-street-distance-h - min-street-distance-h
-  assert delta-street-distance-h > 0 "max-street-distance-h must be greater than min-street-distance-h"
+  assert delta-street-distance-h >= 0 "max-street-distance-h must be greater than min-street-distance-h"
 
   set street-north-east-color [189 183 107]
   set street-south-west-color [100 149 237]
@@ -76,19 +76,45 @@ to build-roads
     build-perimeter 
     set last-turns []
     
+    build-streets-grid
+    
     ]
   
 end
 
+to build-perimeter'
+  ask road-builder [ build-perimeter
+                     set last-turns []
+                   ]
+end
 
 to next-street'
-  ask road-builder [ next-street ]
+  ask road-builder [ let x next-street ]
+end
+
+to build-streets-grid'
+  ask road-builder [ build-streets-grid ]
+end
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; builds a grid of one-lane streets
+to build-streets-grid
+  
+  ; build vertical streets
+  build-streets-grid-half
+  ; build horizontal streets
+  build-streets-grid-half
+  
+end
+
+to build-streets-grid-half
+  if next-street [ build-streets-grid-half ]
 end
 
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; builds the next street in a "snake" manner
-to next-street
+to-report next-street
   let to-jump random-next-street-distance heading
   if to-jump < 0 [ error "not a n*pi/2 direction" ]
   
@@ -96,7 +122,7 @@ to next-street
   if dp = -1 [ error "cannot handle angles different n*pi/2" ]
   
   
-  ifelse to-jump > dp - min-street-distance heading ;task [ report is-road? ?1 ] 
+  ifelse to-jump > dp - min-street-distance heading
      [;THEN
        jump dp
        next-street-turn
@@ -104,6 +130,7 @@ to next-street
        if first last-turns = "L" [ set last-turns ["L"] ]
        if first last-turns = "R" [ set last-turns ["R"] ]
        
+       report false
 ;       set last-turns []
         ]
      
@@ -123,6 +150,8 @@ to next-street
        fd 1
        build-cross-here
        next-street-turn       
+       
+       report true
      ]
   
 
@@ -245,9 +274,9 @@ end
 
 to-report min-street-distance [ dir ]
   report ifelse-value v-dir? dir
-               [ min-street-distance-v ][
+               [ min-street-distance-h ][
          ifelse-value h-dir? dir
-               [ min-street-distance-h  ]
+               [ min-street-distance-v  ]
                [ -1 ]
                ]
 end
@@ -342,10 +371,10 @@ end
 
 @#$#@#$#@
 GRAPHICS-WINDOW
-23
-13
-1641
-852
+9
+10
+1627
+849
 100
 50
 8.0
@@ -369,10 +398,10 @@ ticks
 30.0
 
 BUTTON
-1704
-152
-1777
-185
+1645
+160
+1718
+193
 NIL
 setup
 NIL
@@ -385,71 +414,11 @@ NIL
 NIL
 1
 
-SLIDER
-2033
-161
-2206
-194
-building-max-width
-building-max-width
-5
-50
-20
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-1855
-161
-2027
-194
-building-min-width
-building-min-width
-1
-50
-5
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-2039
-210
-2218
-243
-building-max-height
-building-max-height
-1
-50
-10
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-1856
-210
-2033
-243
-building-min-height
-building-min-height
-1
-50
-5
-1
-1
-NIL
-HORIZONTAL
-
 BUTTON
-1653
-228
-1781
-261
+1722
+161
+1850
+194
 NIL
 build-roads
 NIL
@@ -463,40 +432,40 @@ NIL
 1
 
 SLIDER
-1856
-286
-2043
-319
+1646
+56
+1833
+89
 min-street-distance-v
 min-street-distance-v
 1
 100
-10
+15
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-2043
-286
-2232
-319
+1833
+56
+2022
+89
 max-street-distance-v
 max-street-distance-v
 1
 100
-50
+40
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-1661
-381
-1761
-414
+1751
+267
+1851
+300
 NIL
 next-street'
 NIL
@@ -510,25 +479,25 @@ NIL
 1
 
 SLIDER
-1855
-334
-2044
-367
+1645
+104
+1834
+137
 min-street-distance-h
 min-street-distance-h
 1
 50
-10
+20
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-2043
-334
-2235
-367
+1833
+104
+2025
+137
 max-street-distance-h
 max-street-distance-h
 1
@@ -538,6 +507,40 @@ max-street-distance-h
 1
 NIL
 HORIZONTAL
+
+BUTTON
+1710
+309
+1852
+342
+NIL
+build-streets-grid'
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+1719
+228
+1850
+261
+NIL
+build-perimeter'
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -82,6 +82,8 @@ to build-roads
     
     build-streets-grid
     
+    build-avenues
+    
     ]
   
 end
@@ -100,6 +102,10 @@ to build-streets-grid'
   ask road-builder [ build-streets-grid ]
 end
 
+to build-avenues'
+  ask road-builder [ build-avenues ]
+end
+
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; transforms some of the existing roads to two-lanes
 to build-avenues
@@ -107,8 +113,7 @@ to build-avenues
   let av-h first selected
   let av-v last  selected
   
-  
-  
+  foreach (sentence av-h av-v) [ build-avenue ?1 ]
 end
 
 to build-avenue [ inf ]
@@ -125,19 +130,32 @@ to build-avenue [ inf ]
   
   let name sentence get-road-name inf "'"
   let short sentence get-road-short-name inf "'"
+  
+  build-cross-here name
     
   mem-road-here short name 0
   move-building-road name short
   
+  fd 1
+  build-cross-here name
+end
+
+to-report select-avenues-do [ av ]
+  report ifelse-value (avenues-choice-mode = "1/3 of the most distant")
+               [ sublist av 0 (length av / 3) ][
+         ifelse-value (avenues-choice-mode = "1/3 random from 1/2 most distant")
+               [ sublist (shuffle sublist av 0 (length av / 2)) 0 (length av / 3) ]
+               [ [] ]
+              ]
 end
 
 to-report select-avenues
   let av-h sort-by-prev-dist (filter [h-dir? get-road-dir ?1] roads-info)
   let av-v sort-by-prev-dist (filter [v-dir? get-road-dir ?1] roads-info)
-                   
-  let av-h-m sublist av-h 0 (length av-h / 3)
-  let av-v-m sublist av-v 0 (length av-v / 3)
   
+  let av-h-m select-avenues-do av-h
+  let av-v-m select-avenues-do av-v
+
   report list av-h-m av-v-m
                    
 end
@@ -752,6 +770,33 @@ show-road-begin?
 0
 1
 -1000
+
+BUTTON
+1714
+421
+1838
+454
+NIL
+build-avenues'
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+1844
+420
+2102
+465
+avenues-choice-mode
+avenues-choice-mode
+"1/3 of the most distant" "1/3 random from 1/2 most distant"
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

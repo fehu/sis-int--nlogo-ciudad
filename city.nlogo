@@ -1,6 +1,7 @@
 
-globals [ delta-street-distance-v delta-street-distance-h                  ; delta-width delta-height
-          street-north-east-color street-south-west-color street-cross-color
+globals [ street-north-east-color   street-south-west-color   street-cross-color
+          delta-street-distance-v   delta-street-distance-h
+          last-road-name-v          last-road-name-h          road-names
   ]
 
 breed [ road-builder road-builders ]
@@ -16,8 +17,11 @@ patches-own [
   is-cross
   ; for roads
   road-direction
+  road-name
   ; for crosses
   open-direction
+  road-name-v
+  road-name-h
 ;  next-cross-distance-north
 ;  next-cross-distance-east
 ;  next-cross-distance-south
@@ -44,12 +48,6 @@ end
 
 to setup-build
   
-;  set delta-width building-max-width - building-min-width
-;  assert delta-width >= 0 "building-max-width must be greater than building-min-width"
-;  
-;  set delta-height building-max-height - building-min-height
-;  assert delta-height >= 0 "building-max-height must be greater than building-min-height"
-  
   set delta-street-distance-v max-street-distance-v - min-street-distance-v
   assert delta-street-distance-v >= 0 "max-street-distance-v must be greater than min-street-distance-v"
 
@@ -59,6 +57,9 @@ to setup-build
   set street-north-east-color [189 183 107]
   set street-south-west-color [100 149 237]
   set street-cross-color      red
+
+  set last-road-name-v 0
+  set last-road-name-h 0
 
 end
 
@@ -131,31 +132,50 @@ to-report next-street
        if first last-turns = "R" [ set last-turns ["R"] ]
        
        report false
-;       set last-turns []
-        ]
+      ]
      
      [;ELSE
+       print "JUMP"
        jump to-jump 
   
-       build-cross-here
+       let name next-street-name heading
+  
        next-street-turn
+       build-cross-here name
+       mem-road name
+       
+       ask patch-ahead -1 [ set plabel name ]
+       print "LABEL"
        
        move task [ is-perimeter? patch-ahead 1 ]
             task [ 
                    ifelse is-road? patch-here 
-                         [ build-cross-here ] 
+                         [ build-cross-here "" ] 
                          [ build-road-here ]
               ]
        
+       print "END TASK"
+       
        fd 1
-       build-cross-here
+       build-cross-here ""
        next-street-turn       
        
+       print "NEXT TURN"
+       
        report true
-     ]
+      ]
   
 
   
+end
+
+to-report next-street-name [ dir ]
+  if v-dir? dir [ set last-road-name-v last-road-name-v + 1 
+                  report word "v-" last-road-name-v
+                ]
+  if h-dir? dir [ set last-road-name-h last-road-name-h + 1 
+                  report word "h-" last-road-name-h
+                ]
 end
 
 to-report random-next-street-distance [ dir ]
@@ -210,15 +230,17 @@ end
 ;; bulds road perimeter
 to build-perimeter
   ; go to left-bottom corner (with margin 1)
-  set xcor min-pxcor + 1
-  set ycor min-pycor + 1
+  set xcor min-pxcor + perimeter-margin
+  set ycor min-pycor + perimeter-margin
 
   set heading East ; random-choice (list North East)
   
   move task [ is-road? patch-ahead 1 ]
        task [ build-road-here
-              if is-edge? patch-ahead 1
-                 [ build-cross-here
+              if is-edge? patch-ahead perimeter-margin
+                 [ let name word "Perimeter-" (dir2str heading-right)
+                   build-cross-here name
+                   mem-road name
                    lt 90 
                    ]
             ]
@@ -238,15 +260,30 @@ end
 ;; build different roads
 
 to build-road-here
-  set is-road  true
-  set is-cross false
-  set pcolor   street-color-to-paint heading
+  set is-road   true
+  set is-cross  false
+  set pcolor    street-color-to-paint heading
+  set road-name [road-name] of patch-ahead -1
 end
 
-to build-cross-here
+to build-cross-here [ name ] ; case new street
   set is-road  true
   set is-cross true
   set pcolor   street-cross-color
+  
+  let current-street ifelse-value not empty? name
+                           [ [road-name] of patch-ahead -1 ]
+                           [ name ]
+  let perpend-street [road-name] of patch-right-and-ahead 90 1
+  
+  set road-name-v ifelse-value v-dir? heading
+                        [ current-street ]
+                        [ perpend-street ]
+  set road-name-h ifelse-value h-dir? heading
+                        [ current-street ]
+                        [ perpend-street ]
+  
+  
 end
 
 to-report street-color-to-paint [ dir ]
@@ -255,6 +292,10 @@ to-report street-color-to-paint [ dir ]
   if dir = South or dir = West
      [ report street-south-west-color ]
   report []
+end
+
+to mem-road [ name ]
+  set road-names sentence road-names name
 end
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
@@ -282,7 +323,7 @@ to-report min-street-distance [ dir ]
 end
 
 to-report distance-to-perimeter
-  report simple-distance-to-edge - 1
+  report simple-distance-to-edge - perimeter-margin
 end
 
 to-report simple-distance-to-edge
@@ -324,11 +365,16 @@ to-report is-edge? [ a ]
 end
 
 to-report is-perimeter? [ a ]
-  report [pxcor] of a = max-pxcor - 1 or [pxcor] of a = min-pxcor + 1 or
-         [pycor] of a = max-pycor - 1 or [pycor] of a = min-pycor + 1
+  report [pxcor] of a = max-pxcor - perimeter-margin or [pxcor] of a = min-pxcor + perimeter-margin or
+         [pycor] of a = max-pycor - perimeter-margin or [pycor] of a = min-pycor + perimeter-margin
 end
 
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; controller scope
 
+;to-report street-distances
+
+;end
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; directions
@@ -358,6 +404,26 @@ to-report h-dir? [ d ]
   report (remainder d 90) = 0 and not v-dir? d
 end
 
+to-report dir2str [ dir ]
+  report ifelse-value (dir = North)
+               [ "North" ][
+         ifelse-value (dir = East)
+               [ "East" ][ 
+         ifelse-value (dir = South)
+               [ "South" ][ 
+         ifelse-value (dir = West)
+               [ "West" ]
+               [ word dir " degrees" ]
+                 ]]]
+end
+
+to-report heading-right
+  let h heading + 90
+  report ifelse-value (h = 360)
+               [ 0 ]
+               [ h ]
+end
+
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; misc
 
@@ -368,7 +434,6 @@ end
 to-report random-choice [ l ]
   report first shuffle l
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 9
@@ -541,6 +606,21 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+1645
+12
+1817
+45
+perimeter-margin
+perimeter-margin
+1
+10
+2
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

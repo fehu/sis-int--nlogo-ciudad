@@ -16,7 +16,6 @@ to setup
   
   set-default-world-shape
   
-  setup-world
   setup-build
   setup-road-builder
 end

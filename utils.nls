@@ -1,0 +1,31 @@
+globals [ -debug- ]
+
+
+to debug [ msg ]
+  if -debug- [ print msg ]
+end
+
+
+
+to assert [b msg]
+  if not b [ error msg ]
+end
+
+
+to-report random-choice [ l ]
+  report first shuffle l
+end
+
+
+to-report find [ what-f where ]
+  let f filter what-f where
+  ifelse length f = 1 [ report sentence f []]
+                      [ report [] ]
+end
+
+
+to-report get-opt [ opt ]
+  if length opt = 1 [ report first opt ]
+  if length opt > 1 [ error "not an option" ]
+  error "empty option"
+end

@@ -1,8 +1,9 @@
+__includes[ "utils.nls" ]
 
 globals [ max-street-distance-v     max-street-distance-h
           min-street-distance-v     min-street-distance-h
           
-          perimeter-margin          avenues-choice-mode       -debug-
+          perimeter-margin          avenues-choice-mode
           show-road-begin?          fill-street-name?
   
           street-north-east-color   street-south-west-color   street-cross-color
@@ -45,11 +46,6 @@ end
 
 
 
-to setup-world
-  ask patches [ set is-road false ]
-end
-
-
 to setup-road-builder
   create-road-builder 1
   ask road-builder[ set color white ]
@@ -74,6 +70,8 @@ to setup-build
 
   set roads-info []
   set crosses-info []
+  
+  ask patches [ set is-road false ]
 end
 
 
@@ -618,31 +616,4 @@ to-report heading-right
   report ifelse-value (h = 360)
                [ 0 ]
                [ h ]
-end
-
-;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
-;; misc
-
-to assert [b msg]
-  if not b [ error msg ]
-end
-
-to-report random-choice [ l ]
-  report first shuffle l
-end
-
-to-report find [ what-f where ]
-  let f filter what-f where
-  ifelse length f = 1 [ report sentence f []]
-                      [ report [] ]
-end
-
-to-report get-opt [ opt ]
-  if length opt = 1 [ report first opt ]
-  if length opt > 1 [ error "not an option" ]
-  error "empty option"
-end
-
-to debug [ msg ]
-  if -debug- [ print msg ]
 end

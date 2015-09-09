@@ -1,36 +1,70 @@
 
-globals [ delta-width delta-height delta-street-distance 
+globals [ delta-width delta-height delta-street-distance-v delta-street-distance-h 
           street-north-east-color street-south-west-color street-cross-color
   ]
 
 breed [ road-builder road-builders ]
 
-road-builder-own [ last-turns ]
+road-builder-own [ 
+  last-turns
+  known-street-distances-v
+  known-street-distances-h
+  ]
+
+patches-own [ 
+  is-road
+  is-cross
+  ; for roads
+  road-direction
+  ; for crosses
+  open-direction
+;  next-cross-distance-north
+;  next-cross-distance-east
+;  next-cross-distance-south
+;  next-cross-distance-west
+  ]
 
 to setup
+  setup-world
+  
+  setup-build
+
+  create-road-builder 1
+  ask road-builder[ set color white ]
+end
+
+to setup-world
   clear-all
   resize-world -100 100 -50 50
   set-patch-size 8
 
+  ask patches [ set is-road false ]
+end
+
+
+to setup-build
+  
   set delta-width building-max-width - building-min-width
   assert delta-width > 0 "building-max-width must be greater than building-min-width"
   
   set delta-height building-max-height - building-min-height
   assert delta-height > 0 "building-max-height must be greater than building-min-height"
   
-  set delta-street-distance max-street-distance - min-street-distance
-  assert delta-height > 0 "max-street-distance must be greater than min-street-distance"
-  
-;  create-turtles 10 ;[fd 50]
+  set delta-street-distance-v max-street-distance-v - min-street-distance-v
+  assert delta-street-distance-v > 0 "max-street-distance-v must be greater than min-street-distance-v"
 
-  set street-north-east-color yellow
-  set street-south-west-color blue
+  set delta-street-distance-h max-street-distance-h - min-street-distance-h
+  assert delta-street-distance-h > 0 "max-street-distance-h must be greater than min-street-distance-h"
+
+  set street-north-east-color [189 183 107]
+  set street-south-west-color [100 149 237]
   set street-cross-color      red
-
-  create-road-builder 1
 
 end
 
+
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;;
 ;;
 ;; ROADS
@@ -51,6 +85,57 @@ to next-street'
   ask road-builder [ next-street ]
 end
 
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; builds the next street in a "snake" manner
+to next-street
+  let to-jump random-next-street-distance heading
+  if to-jump < 0 [ error "not a n*pi/2 direction" ]
+  
+  let dp distance-to-perimeter
+  if dp = -1 [ error "cannot handle angles different n*pi/2" ]
+  
+  
+  ifelse to-jump > dp - min-street-distance heading ;task [ report is-road? ?1 ] 
+     [;THEN
+       jump dp
+       next-street-turn
+       
+       if first last-turns = "L" [ set last-turns ["L"] ]
+       if first last-turns = "R" [ set last-turns ["R"] ]
+       
+;       set last-turns []
+        ]
+     
+     [;ELSE
+       jump to-jump 
+  
+       build-cross-here
+       next-street-turn
+       
+       move task [ is-perimeter? patch-ahead 1 ]
+       task [ build-road-here ]
+       
+       fd 1
+       build-cross-here
+       next-street-turn       
+     ]
+  
+
+  
+end
+
+to-report random-next-street-distance [ dir ]
+  report ifelse-value v-dir? dir
+               [ min-street-distance-h + random delta-street-distance-h ][
+         ifelse-value h-dir? dir
+               [ min-street-distance-v + random delta-street-distance-v ]
+               [ -1 ]
+               ]
+end
+
+
+; next turn for snake-like turns (LLRRLLRRLL...)
 to next-street-turn
   ifelse not empty? last-turns
         [ ifelse empty? but-first last-turns 
@@ -80,37 +165,16 @@ to next-street-turn
                    ]
           ]
         [ 
-          set last-turns ["L"] 
+          ; initial turn: Left
+          set last-turns ["L" "L"] 
           lt 90
           ]
   
 end
 
-;to next-street-turn
-;  let h (last-v-heading + 180)
-;  set heading h
-;  set last-v-heading h
-;end
 
-to next-street
-  jump random-next-street-distance
-  
-  build-cross-here
-  next-street-turn
-     
-  move task [ is-street? patch-ahead 1 ]
-       task [ build-road-here ]
-  
-  fd 1
-  build-cross-here
-  next-street-turn
-  
-end
-
-to-report random-next-street-distance
-  report min-street-distance + random delta-street-distance
-end
-
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; bulds road perimeter
 to build-perimeter
   ; go to left-bottom corner (with margin 1)
   set xcor min-pxcor + 1
@@ -118,7 +182,7 @@ to build-perimeter
 
   set heading East ; random-choice (list North East)
   
-  move task [ is-street? patch-ahead 1 ]
+  move task [ is-road? patch-ahead 1 ]
        task [ build-road-here
               if is-edge? patch-ahead 1
                  [ build-cross-here
@@ -128,18 +192,40 @@ to build-perimeter
 end
 
 
+
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;;
 ;;
 ;; COMMON
 
 
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; build different roads
+
 to build-road-here
-  set pcolor street-color heading
+  set is-road  true
+  set is-cross false
+  set pcolor   street-color-to-paint heading
 end
 
 to build-cross-here
-  set pcolor street-cross-color
+  set is-road  true
+  set is-cross true
+  set pcolor   street-cross-color
 end
+
+to-report street-color-to-paint [ dir ]
+  if dir = North or dir = East
+     [ report street-north-east-color ]
+  if dir = South or dir = West
+     [ report street-south-west-color ]
+  report []
+end
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; repeating tasks
 
 to move [ until do ]
   fd 1
@@ -150,42 +236,69 @@ to move [ until do ]
 end
 
 
-to-report street-color [ dir ]
-  if dir = North or dir = East
-     [ report street-north-east-color ]
-  if dir = South or dir = West
-     [ report street-south-west-color ]
-  report []
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; city orientation
+
+to-report min-street-distance [ dir ]
+  report ifelse-value v-dir? dir
+               [ min-street-distance-v ][
+         ifelse-value h-dir? dir
+               [ min-street-distance-h  ]
+               [ -1 ]
+               ]
 end
 
-
-to-report is-street? [ patch' ]
-  report is-street-color? [pcolor] of patch'
+to-report distance-to-perimeter
+  report simple-distance-to-edge - 1
 end
 
-to-report is-street-color? [ color' ]
-  report color' = street-north-east-color or 
-         color' = street-south-west-color
+to-report simple-distance-to-edge
+  report ifelse-value (heading = North)
+               [ abs (max-pycor - pycor) ][
+         ifelse-value (heading = East)
+               [ abs (max-pxcor - pxcor) ][ 
+         ifelse-value (heading = South)
+               [ abs (min-pycor - pycor)  ][ 
+         ifelse-value (heading = West)
+               [ abs (min-pxcor - pxcor) ]
+               [ -1 ]
+                 ]]]
 end
 
+;to-report forall-patches-ahead dist [ cond ]
+;  report ifelse cond
+;end
+
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; is-something?
+
+to-report is-road? [ patch' ]
+  report [is-road] of patch'
+end
+
+to-report is-cross? [ patch' ]
+  report [is-road and is-cross] of patch'
+end
+
+to-report cross-here?
+  report is-cross? patch-here
+end
 
 to-report is-edge? [ a ]
   report [pxcor] of a = max-pxcor or [pxcor] of a = min-pxcor or
          [pycor] of a = max-pycor or [pycor] of a = min-pycor
 end
 
-
-
-
-to assert [b msg]
-  if not b [ error msg ]
-end
-
-to-report random-choice [ l ]
-  report first shuffle l
+to-report is-perimeter? [ a ]
+  report [pxcor] of a = max-pxcor - 1 or [pxcor] of a = min-pxcor + 1 or
+         [pycor] of a = max-pycor - 1 or [pycor] of a = min-pycor + 1
 end
 
 
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; directions
 
 to-report North 
   report 0
@@ -202,6 +315,27 @@ end
 to-report West
   report 270
 end
+
+; vertical direction?
+to-report v-dir? [ d ]
+  report (remainder d 180) = 0
+end
+
+to-report h-dir? [ d ]
+  report (remainder d 90) = 0 and not v-dir? d
+end
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; misc
+
+to assert [b msg]
+  if not b [ error msg ]
+end
+
+to-report random-choice [ l ]
+  report first shuffle l
+end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 23
@@ -327,10 +461,10 @@ NIL
 SLIDER
 1856
 286
-2033
+2043
 319
-min-street-distance
-min-street-distance
+min-street-distance-v
+min-street-distance-v
 1
 100
 10
@@ -342,10 +476,10 @@ HORIZONTAL
 SLIDER
 2043
 286
-2222
+2232
 319
-max-street-distance
-max-street-distance
+max-street-distance-v
+max-street-distance-v
 1
 100
 50
@@ -370,6 +504,36 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+1855
+334
+2044
+367
+min-street-distance-h
+min-street-distance-h
+1
+50
+10
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+2043
+334
+2235
+367
+max-street-distance-h
+max-street-distance-h
+1
+50
+30
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

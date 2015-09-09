@@ -1,0 +1,80 @@
+globals [ roads-info ]
+
+;; road-info:  -- name
+;;             -- direction
+;;             -- beginning coordinates
+;;             -- distance to next/previous street
+;;             -- short name
+
+to mem-road-here-ccw [ name short-name prev-dist-ccw ]
+  let s-cor list pxcor pycor
+  mem-road heading name short-name s-cor 0 prev-dist-ccw
+end
+
+to mem-road [ dir name short-name start-cor prev-dist-cw prev-dist-ccw ]
+  let prev-dist (list prev-dist-cw prev-dist-ccw)
+  let info      (list name dir start-cor prev-dist short-name)
+  
+  set roads-info fput info roads-info
+end
+
+to-report road-by-name [ name ]
+  debug sentence "name: " name
+  report find task [get-road-name ?1 = name] 
+         roads-info
+end
+
+to assert-info-length [ inf ]
+  assert (length inf = 5) "not an info"
+  assert (length item 2 inf = 2) "not a coordinate"
+end
+
+to-report get-road-name [ inf ]
+  assert-info-length inf
+  report first inf
+end
+
+to-report get-road-dir [ inf ]
+  assert-info-length inf
+  report item 1 inf
+end
+
+to-report get-road-cor [ inf ]
+  assert-info-length inf
+  report item 2 inf
+end
+
+to-report get-road-dists2prev [ inf ]
+  assert-info-length inf
+  report item 3 inf
+end
+
+to-report get-road-short-name [ inf ]
+  assert-info-length inf
+  report item 4 inf
+end
+
+to-report get-road-x [ inf ] 
+  report item 0 get-road-cor inf
+end
+
+to-report get-road-y [ inf ] 
+  report item 1 get-road-cor inf
+end
+
+; get distance to previous (clockwise) road
+to-report get-road-dist2prev-cw [ inf ]
+  report item 0 get-road-dists2prev inf
+end
+
+; get distance to previous (counter-clockwise) road
+to-report get-road-dist2prev-ccw [ inf ]
+  report item 1 get-road-dists2prev inf
+end
+
+to set-road-dists2prev-cw [ name dist-cw ]
+  let info get-opt road-by-name name
+  let new replace-item 3 info (list dist-cw get-road-dist2prev-ccw info)
+  let i position info roads-info
+  set roads-info replace-item i roads-info new
+end

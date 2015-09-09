@@ -1,4 +1,4 @@
-__includes[ "utils.nls" ]
+__includes[ "city-roads.nls" "city-roads-info.nls" "utils.nls" ]
 
 globals [ max-street-distance-v     max-street-distance-h
           min-street-distance-v     min-street-distance-h
@@ -10,7 +10,6 @@ globals [ max-street-distance-v     max-street-distance-h
           delta-street-distance-v   delta-street-distance-h
           last-road-name-v          last-road-name-h
           
-          roads-info
           crosses-info
           
           -counter-
@@ -24,18 +23,6 @@ road-builder-own [
   known-street-distances-h
   ]
 
-patches-own [ 
-  is-road
-  is-cross
-  ; for roads
-  road-direction
-  road-name
-  road-short-name
-  ; for crosses
-  open-direction
-  road-name-v
-  road-name-h
-  ]
 
 
 
@@ -48,9 +35,15 @@ end
 
 to setup-road-builder
   create-road-builder 1
-  ask road-builder[ set color white ]
+  ask road-builder[ set color red ]
 end
 
+
+to setup-world-default
+  set street-north-east-color [189 183 107]
+  set street-south-west-color [100 149 237]
+  set street-cross-color      gray
+end
 
 
 to setup-build
@@ -60,10 +53,6 @@ to setup-build
 
   set delta-street-distance-h max-street-distance-h - min-street-distance-h
   assert delta-street-distance-h >= 0 "max-street-distance-h must be greater than min-street-distance-h"
-
-  set street-north-east-color [189 183 107]
-  set street-south-west-color [100 149 237]
-  set street-cross-color      red
 
   set last-road-name-v 0
   set last-road-name-h 0
@@ -436,84 +425,6 @@ to move [ until do ]
      [ move until do ]
 end
 
-
-;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
-;; working with roads-info
-
-; 
-to mem-road-here-ccw [ name short-name prev-dist-ccw ]
-  let s-cor list pxcor pycor
-  mem-road heading name short-name s-cor 0 prev-dist-ccw
-end
-
-to mem-road [ dir name short-name start-cor prev-dist-cw prev-dist-ccw ]
-  let prev-dist (list prev-dist-cw prev-dist-ccw)
-  let info      (list name dir start-cor prev-dist short-name)
-  
-  set roads-info fput info roads-info
-end
-
-to-report road-by-name [ name ]
-  debug sentence "name: " name
-  report find task [get-road-name ?1 = name] 
-         roads-info
-end
-
-to assert-info-length [ inf ]
-  assert (length inf = 5) "not an info"
-  assert (length item 2 inf = 2) "not a coordinate"
-end
-
-to-report get-road-name [ inf ]
-  assert-info-length inf
-  report first inf
-end
-
-to-report get-road-dir [ inf ]
-  assert-info-length inf
-  report item 1 inf
-end
-
-to-report get-road-cor [ inf ]
-  assert-info-length inf
-  report item 2 inf
-end
-
-to-report get-road-dists2prev [ inf ]
-  assert-info-length inf
-  report item 3 inf
-end
-
-to-report get-road-short-name [ inf ]
-  assert-info-length inf
-  report item 4 inf
-end
-
-to-report get-road-x [ inf ] 
-  report item 0 get-road-cor inf
-end
-
-to-report get-road-y [ inf ] 
-  report item 1 get-road-cor inf
-end
-
-; get distance to previous (clockwise) road
-to-report get-road-dist2prev-cw [ inf ]
-  report item 0 get-road-dists2prev inf
-end
-
-; get distance to previous (counter-clockwise) road
-to-report get-road-dist2prev-ccw [ inf ]
-  report item 1 get-road-dists2prev inf
-end
-
-to set-road-dists2prev-cw [ name dist-cw ]
-  let info get-opt road-by-name name
-  let new replace-item 3 info (list dist-cw get-road-dist2prev-ccw info)
-  let i position info roads-info
-  set roads-info replace-item i roads-info new
-end
-
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; city orientation
 
@@ -544,72 +455,13 @@ to-report simple-distance-to-edge
 end
 
 
-;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
-;; is-something?
-
-to-report is-road? [ patch' ]
-  report [is-road] of patch'
-end
-
-to-report is-cross? [ patch' ]
-  report [is-road and is-cross] of patch'
-end
-
-to-report cross-here?
-  report is-cross? patch-here
-end
-
-to-report is-edge? [ a ]
-  report [pxcor] of a = max-pxcor or [pxcor] of a = min-pxcor or
-         [pycor] of a = max-pycor or [pycor] of a = min-pycor
-end
-
 to-report is-perimeter? [ a ]
   report [pxcor] of a = max-pxcor - perimeter-margin or [pxcor] of a = min-pxcor + perimeter-margin or
          [pycor] of a = max-pycor - perimeter-margin or [pycor] of a = min-pycor + perimeter-margin
 end
 
-
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
-;; directions
-
-to-report North 
-  report 0
-end
-
-to-report East
-  report 90
-end
-
-to-report South
-  report 180
-end
-
-to-report West
-  report 270
-end
-
-; vertical direction?
-to-report v-dir? [ d ]
-  report (remainder d 180) = 0
-end
-
-to-report h-dir? [ d ]
-  report (remainder d 90) = 0 and not v-dir? d
-end
-
-to-report dir2str [ dir ]
-  report ifelse-value (dir = North)
-               [ "North" ][
-         ifelse-value (dir = East)
-               [ "East" ][ 
-         ifelse-value (dir = South)
-               [ "South" ][ 
-         ifelse-value (dir = West)
-               [ "West" ]
-               [ word dir " degrees" ]
-                 ]]]
-end
+;; misc
 
 to-report heading-right
   let h heading + 90

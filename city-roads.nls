@@ -1,0 +1,35 @@
+
+patches-own [ 
+  is-road
+  is-cross
+  ; for roads
+  road-direction
+  road-name
+  road-short-name
+  ; for crosses
+  road-name-v
+  road-name-h
+  ]
+
+breed [ semafor semafors ]
+
+semafor-own [ cross semafor-direction ]
+
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; ROAD
+
+to-report is-road? [ patch' ]
+  report [is-road] of patch'
+end
+
+to-report is-cross? [ patch' ]
+  report [is-road and is-cross] of patch'
+end
+
+to-report cross-here?
+  report is-cross? patch-here
+end
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; SEMAFOR

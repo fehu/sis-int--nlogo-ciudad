@@ -15,7 +15,7 @@ to mem-road [ dir name short-name start-cor prev-dist-cw prev-dist-ccw ]
   let prev-dist (list prev-dist-cw prev-dist-ccw)
   let info      (list name dir start-cor prev-dist short-name)
   
-  set roads-info fput info roads-info
+  set roads-info lput info roads-info
 end
 
 to-report road-by-name [ name ]

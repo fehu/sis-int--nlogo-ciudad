@@ -1,0 +1,50 @@
+ 
+globals [ crosses-info ]
+
+;; cross-info: -- cross coordinate
+;;             -- cross agent (turtle)
+
+to mem-cross [ cor agent ]
+  let inf (list cor agent)
+  set crosses-info (lput inf crosses-info)
+end
+
+to mem-empty-cross-here
+  mem-cross (list pxcor pycor) []
+end
+
+
+to assert-cross-info [ inf ]
+  assert (length inf = 1) "not an info"
+  assert (length item 0 inf = 2) "not a coordinate"
+end
+
+to-report get-cross-cor [ inf ]
+  assert-cross-info inf
+  report item 0 inf
+end
+
+to-report get-cross-agent [ inf ]
+  assert-cross-info inf
+  report item 1 inf
+end
+
+
+to-report cross-by-cor [ cor ]
+  report find task [ get-cross-cor ?1 = cor] crosses-info
+end
+
+to set-agent-to-cross [ cor agent ]
+  let inf-opt cross-by-cor cor
+  assert (not empty? inf-opt) word "cross not found at " cor
+  let inf get-opt inf-opt
+  
+  let old-ag-opt get-cross-agent inf
+  assert (not empty? old-ag-opt) 
+         (word "agent " get-opt old-ag-opt " already set for " cor )
+  
+  let new-inf replace-item 1 inf (list agent)
+  
+  let i position inf crosses-info
+  set crosses-info replace-item i crosses-info new-inf
+end

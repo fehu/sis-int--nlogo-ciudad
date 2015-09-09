@@ -87,3 +87,11 @@ to-report dir2str [ dir ]
                [ word dir " degrees" ]
                  ]]]
 end
+
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+
+to-report patch-at-cors [ cors ]
+  assert (length cors = 2) "not a coordinates list"
+  report patch (first cors) (last cors)
+end

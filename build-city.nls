@@ -1,4 +1,7 @@
-__includes[ "city-roads.nls" "city-roads-info.nls" "utils.nls" ]
+__includes[ "city-roads.nls" 
+            "city-roads-info.nls" 
+            "city-crosses.nls" 
+            "utils.nls" ]
 
 globals [ max-street-distance-v     max-street-distance-h
           min-street-distance-v     min-street-distance-h
@@ -9,8 +12,6 @@ globals [ max-street-distance-v     max-street-distance-h
           street-north-east-color   street-south-west-color   street-cross-color
           delta-street-distance-v   delta-street-distance-h
           last-road-name-v          last-road-name-h
-          
-          crosses-info
           
           -counter-
   ]
@@ -310,16 +311,18 @@ to build-perimeter
   
   move task [ is-road? patch-ahead 1 ]
        task [ 
-              let dir' dir2str heading-right
+              let dir' dir2str heading-left
               let name word "Perimeter-" dir'
               let short first dir'
               
               build-road-here name short
               
               if is-edge? patch-ahead perimeter-margin
-                 [ build-cross-here name
+                 [ lt 90;  TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                   let nme word "Perimeter-" dir'
+                   build-cross-here nme
                    mem-road-here-ccw name short 0
-                   lt 90 
+;                   lt 90 
                    ]
             ]
   fd 1
@@ -405,6 +408,7 @@ to build-cross-here [ current-street ] ; case new street
   let perpend-street [road-name] of patch-right-and-ahead 90 1
   
   set-cross-names-here current-street perpend-street
+  mem-empty-cross-here
 end
 
 to-report street-color-to-paint [ dir ]
@@ -464,9 +468,17 @@ end
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; misc
 
-to-report heading-right
-  let h heading + 90
-  report ifelse-value (h = 360)
-               [ 0 ]
+to-report heading-left
+  let h heading - 90
+  report ifelse-value (h = -90)
+               [ 270 ]
                [ h ]
 end
+
+
+;to-report heading-right
+;  let h heading + 90
+;  report ifelse-value (h = 360)
+;               [ 0 ]
+;               [ h ]
+;end

@@ -309,26 +309,34 @@ to build-perimeter
 
   set heading East ; random-choice (list North East) ; TODO HARDCODED
   
+;  mem-road-here-ccw perimeter-name perimeter-short-name 1 0
+  
   move task [ is-road? patch-ahead 1 ]
        task [ 
-              let dir' dir2str heading-right
-              let name word "Perimeter-" dir'
-              let short first dir'
+              let name perimeter-name 
+              let short perimeter-short-name
               
               build-road-here name short
               
               if is-edge? patch-ahead perimeter-margin
-                 [ ;lt 90;  TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                   let nme word "Perimeter-" dir'
-                   build-cross-here nme
-                   mem-road-here-ccw name short 1 0
+                 [ build-cross-here name
                    lt 90 
+                   let nme perimeter-name
+                   mem-road-here-ccw nme perimeter-short-name 1 0
+                   set-cross-names-here nme name
                    ]
             ]
   fd 1
   set road-name-v [road-name] of patch-ahead -1 ; TODO HARDCODED
 end
 
+to-report perimeter-name
+  report (word "Perimeter-" dir2str heading-right)
+end
+
+to-report perimeter-short-name
+  report first dir2str heading-right
+end
 
 to set-builder-to-initial-position
   set xcor min-pxcor + perimeter-margin

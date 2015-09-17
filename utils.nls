@@ -26,6 +26,11 @@ to-report find [ what-f where ]
                       [ report [] ]
 end
 
+
+to-report contains? [ x lst ]
+  report not ( position x lst = false ) ; cannot apply (position x lst) directly to not
+end
+
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; get the element from list if it's the only one
 to-report get-opt [ opt ]
@@ -91,7 +96,61 @@ end
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 
-to-report patch-at-cors [ cors ]
-  assert (length cors = 2) "not a coordinates list"
-  report patch (first cors) (last cors)
+to-report pcor-of [ p ]
+  report list ([pxcor] of p) ([pycor] of p)
 end
+
+to-report patch-at-cor [ cor ]
+  assert (length cor = 2) "not a coordinates list"
+  report patch (first cor) (last cor)
+end
+
+to-report second [ l ]
+  report item 1 l
+end
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; agentsets
+
+to-report filter-agentset [ aset cond ]
+  let result []
+  ask aset [ if (runresult cond self) [ set result lput self result ] ]
+  report result
+end
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; lists
+
+to-report concat [l1 l2]
+  ifelse empty? l2
+         [ report l1 ]
+         [ 
+           let l1' lput (first l2) l1  
+           report concat l1' (but-first l2)      
+         ]
+end
+
+
+to-report fold-left [ f i l ]
+  report fold-left-inner f l i
+end
+
+to-report fold-left-inner [ f l acc ]
+  ifelse empty? l 
+         [ report acc ]
+         [ 
+           let l'   but-first l
+           let acc' (runresult f acc (first l))
+           
+           report fold-left-inner f l' acc'
+           ]
+end
+
+
+to-report concat-map [ f l ]
+  report fold-left task [ concat ?1 (runresult f ?2) ]
+                   []
+                   l
+;  report reduce [ concat ?1 (runresult f ?2) ] l
+end
+

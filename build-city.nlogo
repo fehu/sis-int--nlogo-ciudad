@@ -257,13 +257,24 @@ avenues-how-to-choose
 "1/3 of the most distant" "1/3 random from 1/2 most distant"
 1
 
+SWITCH
+1871
+231
+1975
+264
+debug?
+debug?
+1
+1
+-1000
+
 BUTTON
-1660
-519
-1962
-552
+1652
+471
+1790
+504
 NIL
-ask road-builder [ establish-dist2prev-cw ]
+build-semafors
 NIL
 1
 T
@@ -273,17 +284,6 @@ NIL
 NIL
 NIL
 1
-
-SWITCH
-1871
-231
-1975
-264
-debug?
-debug?
-0
-1
--1000
 
 @#$#@#$#@
 ## WHAT IS IT?

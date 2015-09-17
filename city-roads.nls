@@ -1,3 +1,4 @@
+__includes[ "city-crosses.nls" ]
 
 patches-own [ 
   is-road
@@ -16,7 +17,7 @@ patches-own [
 
 breed [ semafor semafors ]
 
-semafor-own [ cross semafor-direction ]
+semafor-own [ semafor-crosses green-direction cars-count ]
 
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
@@ -36,3 +37,33 @@ end
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; SEMAFOR
+
+to semafor-open-v
+  set green-direction "v"
+  set heading 0
+end
+
+;to semafor-open-h
+
+
+to new-semafor [ crosses ]
+  let c center-of-patches crosses
+  
+  create-semafor 1 [ set semafor-crosses crosses
+                     set xcor            first  c
+                     set ycor            second c
+                     
+                     set shape "arrow"
+                     set color red
+                     set heading 0
+                     
+                     foreach crosses [ set-agent-to-cross pcor-of ?1 self ]
+                    ]
+end
+
+
+to-report center-of-patches [ ps ]
+  let cs map pcor-of ps
+  report list (mean map first cs) (mean map second cs)
+;  report list (mean map [[pxcor] of ?1] ps) (mean map [[pycor] of ?1] ps) ;(mean map pycor ps)
+end

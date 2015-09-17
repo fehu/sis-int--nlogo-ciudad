@@ -15,7 +15,7 @@ end
 
 
 to assert-cross-info [ inf ]
-  assert (length inf = 1) "not an info"
+  assert (length inf = 2) "not a cross"
   assert (length item 0 inf = 2) "not a coordinate"
 end
 
@@ -40,8 +40,8 @@ to set-agent-to-cross [ cor agent ]
   let inf get-opt inf-opt
   
   let old-ag-opt get-cross-agent inf
-  assert (not empty? old-ag-opt) 
-         (word "agent " get-opt old-ag-opt " already set for " cor )
+  assert (empty? old-ag-opt) 
+         (word "agent already set for " cor )
   
   let new-inf replace-item 1 inf (list agent)
   

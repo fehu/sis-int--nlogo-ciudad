@@ -65,6 +65,45 @@ to setup-build
 end
 
 
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;;
+;;
+;; CROSSES
+
+to build-semafors
+  build-semafors' (map get-cross-cor crosses-info)  
+end
+
+to build-semafors' [ crosses-cor ]
+  if not empty? crosses-cor
+    [
+     let cor  first crosses-cor
+     let ag-opt get-cross-agent get-opt cross-by-cor cor
+     if empty? ag-opt 
+        [ 
+          let merged merge-crosses patch-at-cor cor
+          debug word "new-semafor for " merged
+          new-semafor merged
+         ]
+     build-semafors' (but-first crosses-cor)
+    ]
+end
+
+
+to-report merge-crosses [ initial-cross ]
+  report remove-duplicates merge-crosses-inner initial-cross []
+end
+
+to-report merge-crosses-inner [ initial-cross acc ]
+  let cross-neighbours filter-agentset ([neighbors4] of initial-cross) task [ is-cross? ?1 ]
+  let neighbours filter [not contains? ?1 acc] cross-neighbours
+  let acc' concat (lput initial-cross acc) neighbours
+  
+  let neighbouring-crosses concat-map task [ merge-crosses-inner ?1 acc' ] neighbours
+  
+  report fput initial-cross neighbouring-crosses
+end
+
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;;

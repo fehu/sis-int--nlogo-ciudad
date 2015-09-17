@@ -1,4 +1,4 @@
-__includes[ "build-city.nls" ]
+__includes[ "build-city.nls" "city.nls" ]
 
 to setup
   clear-all
@@ -16,8 +16,30 @@ to setup
   
   set-default-world-shape
   
+  setup-world-default
   setup-build
   setup-road-builder
+end
+
+
+to act-cars
+  ask cars [ select-direction-and-move ]
+end
+
+to select-direction-and-move
+  let moves permitted-moves
+  
+  if not empty? moves 
+    [
+     let mv first moves
+     if  mv = ""  [ error "wrong relative direction" ]
+     if  mv = "l" [ lt 90 ]
+     if  mv = "r" [ rt 90 ]
+     if  mv = "b" [ rt 180 ]
+    
+     fd 1   
+    ]
+  
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -214,7 +236,7 @@ SWITCH
 190
 all-street-names?
 all-street-names?
-1
+0
 1
 -1000
 
@@ -257,12 +279,12 @@ avenues-how-to-choose
 1
 
 BUTTON
-1660
-519
-1962
-552
+1655
+485
+1808
+518
 NIL
-ask road-builder [ establish-dist2prev-cw ]
+build-semafors
 NIL
 1
 T
@@ -283,6 +305,23 @@ debug?
 1
 1
 -1000
+
+BUTTON
+1656
+561
+1738
+594
+NIL
+act-cars
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

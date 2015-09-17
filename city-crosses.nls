@@ -4,6 +4,13 @@ globals [ crosses-info ]
 ;; cross-info: -- cross coordinate
 ;;             -- cross agent (turtle)
 
+patches-own [ 
+  road-name-v
+  road-name-h
+  road-lane-v
+  road-lane-h 
+]
+
 to mem-cross [ cor agent ]
   let inf (list cor agent)
   set crosses-info (lput inf crosses-info)

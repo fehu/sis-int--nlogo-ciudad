@@ -112,9 +112,28 @@ end
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; agentsets
 
+; careful ! with caller context
+to-report map-agentset [ aset f ]
+  let result []
+  ask aset [ set result lput (runresult f self) result ] 
+  report result
+end
+
+to-report agentset-to-list [ aset ]
+  let result []
+  ask aset [ set result lput self result ] 
+  report result
+end
+
 to-report filter-agentset [ aset cond ]
   let result []
   ask aset [ if (runresult cond self) [ set result lput self result ] ]
+  report result
+end
+
+to-report map-agentset-with-filter [ aset cond f ]
+  let result []
+  ask aset [ if (runresult cond self) [ set result lput (runresult f self) result ] ]
   report result
 end
 

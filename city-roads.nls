@@ -1,4 +1,4 @@
-__includes[ "city-crosses.nls" ]
+__includes[ "city-crosses.nls" "utils.nls" ]
 
 patches-own [ 
   is-road
@@ -8,16 +8,11 @@ patches-own [
   road-name
   road-short-name
   road-lane
-  ; for crosses
-  road-name-v
-  road-name-h
-  road-lane-v
-  road-lane-h
-  ]
+]
 
-breed [ semafor semafors ]
+breed [ semafors semafor ]
 
-semafor-own [ semafor-crosses green-direction cars-count ]
+semafors-own [ semafor-crosses green-direction ] ;; cars-count
 
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
@@ -35,6 +30,10 @@ to-report cross-here?
   report is-cross? patch-here
 end
 
+to-report is-outgoing? [ dir road ]
+  report dir = [road-direction] of road
+end
+
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
 ;; SEMAFOR
 
@@ -43,27 +42,68 @@ to semafor-open-v
   set heading 0
 end
 
-;to semafor-open-h
+to semafor-open-h
+  set green-direction "h"
+  set heading 90
+end
+
+to semafor-open-swap
+  ifelse green-direction = "v" 
+        [ semafor-open-h ]
+        [ 
+          if green-direction = "h" 
+            [ semafor-open-v ]
+         ]
+end
+
+to change-every [ ticks' ]
+  if remainder ticks ticks' = 0 [ semafor-open-swap ]
+end
 
 
+
+
+to-report direction-to-semafor-dir [ dir ]
+  report ifelse-value v-dir? dir
+               [ "v" ][
+         ifelse-value h-dir? dir
+               [ "h" ]
+               [ "" ]
+              ]
+end
+
+to-report get-semafor-on-patch [ patch' ]
+  report get-cross-agent get-opt (cross-by-cor pcor-of patch')
+end
+
+to-report get-semafor-direction [ patch' ]
+  report map [[green-direction] of ?1] get-semafor-on-patch patch'
+end
+
+to-report semafor-open-for-me [ patch' ]
+  report direction-to-semafor-dir heading = get-opt get-semafor-direction patch'
+end
+
+
+
+;; NEW
 to new-semafor [ crosses ]
   let c center-of-patches crosses
   
-  create-semafor 1 [ set semafor-crosses crosses
-                     set xcor            first  c
-                     set ycor            second c
+  create-semafors 1 [ set semafor-crosses crosses
+                      set xcor            first  c
+                      set ycor            second c
                      
-                     set shape "arrow"
-                     set color red
-                     set heading 0
+                      set shape "arrow"
+                      set color red
+                      semafor-open-v
                      
-                     foreach crosses [ set-agent-to-cross pcor-of ?1 self ]
-                    ]
+                      foreach crosses [ set-agent-to-cross pcor-of ?1 self ]
+                     ]
 end
 
 
 to-report center-of-patches [ ps ]
   let cs map pcor-of ps
   report list (mean map first cs) (mean map second cs)
-;  report list (mean map [[pxcor] of ?1] ps) (mean map [[pycor] of ?1] ps) ;(mean map pycor ps)
 end

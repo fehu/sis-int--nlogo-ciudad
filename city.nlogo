@@ -35,6 +35,8 @@ to select-direction-and-move
   
   if moves = "out" [ die ]
   
+;  print word "moves: " moves
+  
   if not empty? moves 
     [
      let mv first moves
@@ -285,10 +287,10 @@ avenues-how-to-choose
 1
 
 BUTTON
-1656
-512
-1809
-545
+1650
+516
+1803
+549
 NIL
 build-semafors
 NIL
@@ -337,8 +339,8 @@ SLIDER
 new-cars-count
 new-cars-count
 1
-20
-20
+100
+100
 1
 1
 NIL

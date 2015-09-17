@@ -68,13 +68,17 @@ end
 
 
 to-report permitted-moves
-  if not [is-road] of patch-here [ print "out of the road"
-                                   report [ "out" ]
-                                  ]
+  ifelse not [is-road] of patch-here 
+        [ 
+          print "out of the road"
+          report "out"
+        ]
+        [
+          report ifelse-value [is-cross] of patch-here
+                       [ permitted-moves-on-cross ]
+                       [ permitted-moves-on-road  ]
+          ]
   
-  report ifelse-value [is-cross] of patch-here
-               [ permitted-moves-on-cross ]
-               [ permitted-moves-on-road  ]
 end
 
 to-report permitted-moves-on-road

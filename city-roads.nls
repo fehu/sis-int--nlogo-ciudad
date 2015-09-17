@@ -31,7 +31,7 @@ to-report cross-here?
 end
 
 to-report is-outgoing? [ dir road ]
-  report dir = [road-direction] of road
+  report is-road? road and dir = [road-direction] of road
 end
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 

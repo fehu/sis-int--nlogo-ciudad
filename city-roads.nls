@@ -95,7 +95,7 @@ to new-semafor [ crosses ]
                       set ycor            second c
                      
                       set shape "arrow"
-                      set color red
+                      set color semafors-color
                       semafor-open-v
                      
                       foreach crosses [ set-agent-to-cross pcor-of ?1 self ]

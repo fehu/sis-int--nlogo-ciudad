@@ -14,20 +14,26 @@ to setup
   set show-road-begin?      show-road-begining?
   set fill-street-name?     all-street-names?
   
+  reset-ticks 
+  
   set-default-world-shape
   
   setup-world-default
   setup-build
   setup-road-builder
+  
 end
 
 
 to act-cars
   ask cars [ select-direction-and-move ]
+  tick
 end
 
 to select-direction-and-move
   let moves permitted-moves
+  
+  if moves = "out" [ die ]
   
   if not empty? moves 
     [
@@ -236,7 +242,7 @@ SWITCH
 190
 all-street-names?
 all-street-names?
-0
+1
 1
 -1000
 
@@ -279,10 +285,10 @@ avenues-how-to-choose
 1
 
 BUTTON
-1655
-485
-1808
-518
+1656
+512
+1809
+545
 NIL
 build-semafors
 NIL
@@ -307,12 +313,83 @@ debug?
 -1000
 
 BUTTON
-1656
-561
-1738
-594
+1657
+660
+1739
+693
 NIL
 act-cars
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+1657
+616
+1829
+649
+new-cars-count
+new-cars-count
+1
+20
+20
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+1828
+616
+1918
+649
+new-cars
+new-cars new-cars-count
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+INPUTBOX
+1922
+616
+2083
+676
+cars-color
+15
+1
+0
+Color
+
+INPUTBOX
+1809
+512
+1970
+572
+semafors-color
+52
+1
+0
+Color
+
+BUTTON
+1650
+556
+1806
+589
+semafors operation
+ask semafors [ change-every 20 ]
 T
 1
 T

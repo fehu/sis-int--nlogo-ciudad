@@ -1,7 +1,66 @@
 __includes[ "city-roads.nls" 
+            "city-roads-info.nls"
             "city-crosses.nls" ]
 
+;globals [ car-colors ]
+
+
 breed [ cars car ]
+
+
+;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
+;; CARS
+
+to new-cars [ n ]
+  create-cars n [ 
+        set color cars-color ;(random-choice car-colors) 
+
+        let lane select-line-start
+        if lane = [] [ error "couldn't find a free street begining to place a car" ]
+        
+        go-to-pcor  get-road-cor lane
+        set heading get-road-dir lane
+        
+        jump select-distance-to-jump
+    ]
+end
+
+to-report select-distance-to-jump
+  let x ifelse-value v-dir? heading
+              [ random world-height ][
+        ifelse-value h-dir? heading 
+              [ random world-width ]
+              [ [] ]
+      ]
+    
+    
+  let p patch-ahead x 
+  
+  ifelse is-road?   p and 
+     not is-cross?  p and
+         no-cars-at p and
+         [road-direction] of p = heading
+    [ report x ]
+    [ report select-distance-to-jump ]
+
+end
+
+to-report select-line-start
+  report select-line-start' shuffle roads-info
+end
+
+to-report select-line-start' [ to-try ]
+  ifelse empty? to-try
+        [ report [] ]
+        [ 
+          let lane random-choice roads-info
+          let lane-start get-road-cor lane
+          
+          ifelse no-cars-at patch-at-cor lane-start
+                [ report lane ]
+                [ report select-line-start' but-first to-try ]
+           ]
+end
 
 
 ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; ;; 
@@ -10,7 +69,7 @@ breed [ cars car ]
 
 to-report permitted-moves
   if not [is-road] of patch-here [ print "out of the road"
-                                   die
+                                   report [ "out" ]
                                   ]
   
   report ifelse-value [is-cross] of patch-here
@@ -26,7 +85,7 @@ to-report permitted-moves-on-road
   ifelse is-cross? ahead
          [ 
            let x semafor-open-for-me ahead 
-           print word "semafor-open-for-me ahead: " x
+;           print word "semafor-open-for-me ahead: " x
            if x and no-cars ahead
              [ set moves lput "f" moves ]
             ]
@@ -72,15 +131,16 @@ end
 
 to-report relative-direction [ dir ]
   let d dir - heading 
-  print word "relative-direction: " dir 
-  report ifelse-value (d = 0)
+  let r  ifelse-value (d = 0)
                [ "f" ][
-         ifelse-value (d = 90)
+         ifelse-value (d = 90  or d = -270)
                [ "r" ][
-         ifelse-value (d = 270) ; -90
+         ifelse-value (d = 270 or d = -90)
                [ "l" ][
          ifelse-value (d = 180 or d = -180)
                [ "b" ]
                [ ""  ]
                ]]]
+  if r = "" [ error word "cannot get relative-direction for " (dir - heading) ]
+  report r
 end

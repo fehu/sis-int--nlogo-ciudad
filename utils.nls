@@ -105,6 +105,12 @@ to-report patch-at-cor [ cor ]
   report patch (first cor) (last cor)
 end
 
+to go-to-pcor [ pcor ]
+  assert (length pcor = 2) "not a coordinates list"
+  set xcor (item 0 pcor)
+  set ycor (item 1 pcor)
+end
+
 to-report second [ l ]
   report item 1 l
 end

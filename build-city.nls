@@ -41,8 +41,8 @@ end
 
 
 to setup-world-default
-  set street-north-east-color [189 183 107]
-  set street-south-west-color [100 149 237]
+  set street-north-east-color [ 238 232 170 ] ;[189 183 107]
+  set street-south-west-color [ 173 216 230 ] ;[100 149 237]
   set street-cross-color      gray
 end
 

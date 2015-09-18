@@ -69,8 +69,23 @@ The city generation is done in several steps:
 5. Kill the *city-builder*.
 
 
+City Operation
+--------------
 
+The **cars** must move one patch every time that exists a movement, permitted by the *traffic rules*.
 
+#### Cars Creation
 
+The new **cars** are initially placed in the begining of the streets, after what they jump ahead a random distance.
+
+#### Semafors Operation
+
+The semafors change the open direction every given *ticks*. Currently they do so all at once.
+
+#### Traffic Rules
+
+![car-logic-design](http://fehu.github.io/sis-int--nlogo-ciudad/car-logic-design.png)
+
+![permitted-moves](http://fehu.github.io/sis-int--nlogo-ciudad/permitted-moves.png)
 
 

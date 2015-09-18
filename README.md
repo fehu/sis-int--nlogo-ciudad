@@ -7,6 +7,14 @@ _(El primer parcial de Sistemas Inteligentes)_
 The environment represents city streets. 
 Car-representing _turtles_ move on those streets, respecting traffic rules.
 
+---
+
+[Running Simulation](RunningSimulation.md).
+
+The simulation can be found in [city.nlogo](src/city.nlogo).
+
+
+
 City Structure
 --------------
 
@@ -87,5 +95,3 @@ The semafors change the open direction every given *ticks*. Currently they do so
 ![car-logic-design](http://fehu.github.io/sis-int--nlogo-ciudad/car-logic-design.png)
 
 ![permitted-moves](http://fehu.github.io/sis-int--nlogo-ciudad/permitted-moves.png)
-
-

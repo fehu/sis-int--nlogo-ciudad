@@ -97,27 +97,30 @@ to-report permitted-moves-on-road
            if no-cars ahead
              [ set moves lput "f" moves ]
            ]
-  let r-ahead patch-right-and-ahead 45 1
-  let l-ahead patch-left-and-ahead 45 1
+         
+;; There are no roads like this anyway
+
+;  let r-ahead patch-right-and-ahead 45 1
+;  let l-ahead patch-left-and-ahead 45 1
   
   
-  if permitted-moves-on-road-lane-change r-ahead [ set moves lput "r" moves ]
-  if permitted-moves-on-road-lane-change l-ahead [ set moves lput "l" moves ]
+;  if permitted-moves-on-road-lane-change r-ahead [ set moves lput "r" moves ]
+;  if permitted-moves-on-road-lane-change l-ahead [ set moves lput "l" moves ]
   
   report moves
 end
 
-to-report permitted-moves-on-road-lane-change [ patch' ]
-  report is-road?  patch' and
-     not is-cross? patch' and 
-         [road-direction] of patch-here = [road-direction] of patch' and
-         no-cars   patch'
-end
+;to-report permitted-moves-on-road-lane-change [ patch' ]
+;  report is-road?  patch' and
+;     not is-cross? patch' and 
+;         [road-direction] of patch-here = [road-direction] of patch' and
+;         no-cars   patch'
+;end
 
 
 
 to-report permitted-moves-on-cross
-  let can filter [ is-outgoing? (item 0 ?1) (item 1 ?1) ]
+  let can filter [ is-outgoing? (item 0 ?1) (item 1 ?1) and no-cars-at (item 1 ?1) ]
                  map [ list (towards ?1) ?1 ]
                      agentset-to-list neighbors4
   report map [ relative-direction (item 0 ?1) ] can

@@ -28,8 +28,10 @@ road-builder-own [
 
 
 to set-default-world-shape
-  resize-world -100 100 -50 50
-  set-patch-size 8
+  let w w-width / 2
+  let h w-height / 2
+  resize-world (- w) w (- h) h
+  set-patch-size w-patch
 end
 
 

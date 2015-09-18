@@ -9,7 +9,7 @@ globals [ max-street-distance-v     max-street-distance-h
           perimeter-margin          avenues-choice-mode
           show-road-begin?          fill-street-name?
   
-          street-north-east-color   street-south-west-color   street-cross-color
+;          street-north-east-color   street-south-west-color   street-cross-color
           delta-street-distance-v   delta-street-distance-h
           last-road-name-v          last-road-name-h
           
@@ -40,11 +40,11 @@ to setup-road-builder
 end
 
 
-to setup-world-default
-  set street-north-east-color [ 238 232 170 ] ;[189 183 107]
-  set street-south-west-color [ 173 216 230 ] ;[100 149 237]
-  set street-cross-color      gray
-end
+;to setup-world-default
+;  set street-north-east-color [ 238 232 170 ] ;[189 183 107]
+;  set street-south-west-color [ 173 216 230 ] ;[100 149 237]
+;  set street-cross-color      gray
+;end
 
 
 to setup-build

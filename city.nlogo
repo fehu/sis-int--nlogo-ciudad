@@ -18,12 +18,17 @@ to setup
   
   set-default-world-shape
   
-  setup-world-default
+;  setup-world-default
   setup-build
   setup-road-builder
   
 end
 
+to build-roads'
+  build-roads
+  ask road-builder [ die ]
+  build-semafors
+end
 
 to act-cars
   ask cars [ select-direction-and-move ]
@@ -35,19 +40,43 @@ to select-direction-and-move
   
   if moves = "out" [ die ]
   
-;  print word "moves: " moves
+  let mv []
   
   if not empty? moves 
     [
-     let mv first moves
+     ifelse member? "f" moves and (member? "l" moves or member? "r" moves)
+       [ 
+         ifelse random-float 1 < car-turn-chance
+           [ set mv select-turn-direction moves ]
+           [ set mv "f" ]
+          ][
+     ifelse moves = ["f"]
+           [ set mv "f" ] 
+           [ set mv select-turn-direction moves ]
+         ]
+
      if  mv = ""  [ error "wrong relative direction" ]
      if  mv = "l" [ lt 90 ]
      if  mv = "r" [ rt 90 ]
-     if  mv = "b" [ rt 180 ]
+     if  mv = "b" [ error "'b' direction!" ] ;[ rt 180 ]
     
      fd 1   
     ]
   
+end
+
+; moves must contain a "r" or a "l"
+to-report select-turn-direction [ moves ]
+  ifelse member? "l" moves and member? "r" moves
+        [ ifelse random-float 1 < car-turn-balance  
+            [ report "l" ]
+            [ report "r" ]
+          ]
+        [
+          ifelse member? "l" moves
+                [ report "l" ]
+                [ report "r" ]
+          ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -99,8 +128,8 @@ BUTTON
 233
 1854
 266
-NIL
 build-roads
+build-roads'
 NIL
 1
 T
@@ -287,10 +316,10 @@ avenues-how-to-choose
 1
 
 BUTTON
-1650
-516
-1803
-549
+1714
+471
+1867
+504
 NIL
 build-semafors
 NIL
@@ -315,10 +344,10 @@ debug?
 -1000
 
 BUTTON
-1657
-660
-1739
-693
+1653
+733
+1735
+766
 NIL
 act-cars
 T
@@ -332,10 +361,10 @@ NIL
 1
 
 SLIDER
-1657
-616
-1829
-649
+1651
+653
+1823
+686
 new-cars-count
 new-cars-count
 1
@@ -347,10 +376,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-1828
-616
-1918
-649
+1822
+653
+1912
+686
 new-cars
 new-cars new-cars-count
 NIL
@@ -364,10 +393,10 @@ NIL
 1
 
 INPUTBOX
-1922
-616
-2083
-676
+1916
+653
+2077
+713
 cars-color
 15
 1
@@ -375,10 +404,10 @@ cars-color
 Color
 
 INPUTBOX
-1809
-512
-1970
-572
+1868
+471
+2029
+531
 semafors-color
 52
 1
@@ -386,12 +415,12 @@ semafors-color
 Color
 
 BUTTON
-1650
-556
-1806
-589
+1651
+598
+1807
+631
 semafors operation
-ask semafors [ change-every 20 ]
+ask semafors [ change-every semafors-change-time ]
 T
 1
 T
@@ -401,6 +430,114 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+1808
+599
+2026
+632
+semafors-change-time
+semafors-change-time
+10
+100
+10
+10
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+1654
+307
+1804
+337
+BUILD\nMANUALLY
+12
+0.0
+1
+
+SLIDER
+1738
+733
+1910
+766
+car-turn-chance
+car-turn-chance
+0
+1
+0.3
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1912
+733
+2089
+766
+car-turn-balance
+car-turn-balance
+0
+1
+0.5
+0.1
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+1739
+218
+1889
+236
+BUILD THE CITY
+12
+0.0
+1
+
+TEXTBOX
+1651
+568
+1801
+586
+Runtime
+12
+0.0
+1
+
+INPUTBOX
+2031
+10
+2192
+70
+street-north-east-color
+48
+1
+0
+Color
+
+INPUTBOX
+2031
+75
+2192
+135
+street-south-west-color
+98
+1
+0
+Color
+
+INPUTBOX
+2031
+139
+2192
+199
+street-cross-color
+6
+1
+0
+Color
 
 @#$#@#$#@
 ## WHAT IS IT?
